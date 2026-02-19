@@ -1,0 +1,2462 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loupes.AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #040d1a;
+            --glass: rgba(255,255,255,0.06);
+            --glass2: rgba(255,255,255,0.10);
+            --border: rgba(120,220,255,0.18);
+            --border2: rgba(255,255,255,0.10);
+            --cyan: #00d4ff;
+            --cyan2: #00f5d4;
+            --blue: #4a9eff;
+            --purple: #b06eff;
+            --teal: #00e5c8;
+            --text: #e8f4ff;
+            --muted: rgba(200,230,255,0.45);
+            --danger: #ff4f7b;
+            --green: #00e87a;
+            --font: 'Outfit', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative
+        }
+
+        /* BG */
+        .bg-scene {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden
+        }
+
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: .25;
+            animation: blobDrift 18s ease-in-out infinite alternate
+        }
+
+        .bb1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle,#00d4ff,transparent);
+            top: -200px;
+            left: -200px
+        }
+
+        .bb2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle,#4a9eff,transparent);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -7s
+        }
+
+        .bb3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle,#b06eff,transparent);
+            top: 40%;
+            left: 30%;
+            animation-delay: -12s
+        }
+
+        @keyframes blobDrift {
+            0% {
+                transform: translate(0,0) scale(1)
+            }
+
+            100% {
+                transform: translate(40px,30px) scale(1.08)
+            }
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image: linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);
+            background-size: 40px 40px
+        }
+
+        /* SCREENS */
+        .screen {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity .5s ease,transform .5s ease
+        }
+
+            .screen.hidden {
+                opacity: 0;
+                pointer-events: none;
+                transform: scale(.97)
+            }
+
+        /* PHONE FRAME */
+        .phone {
+            width: 390px;
+            height: 844px;
+            background: rgba(4,13,26,.9);
+            border: 1.5px solid rgba(0,212,255,.2);
+            border-radius: 50px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 40px 100px rgba(0,0,0,.7),0 0 60px rgba(0,212,255,.08),inset 0 0 0 1px rgba(255,255,255,.06);
+            display: flex;
+            flex-direction: column
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 36px;
+            background: rgba(4,13,26,.95);
+            border-radius: 0 0 24px 24px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px
+        }
+
+        .notch-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.15)
+        }
+
+        .notch-cam {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(0,212,255,.3);
+            border: 1px solid rgba(0,212,255,.4)
+        }
+
+        .status-bar {
+            height: 48px;
+            padding: 12px 28px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 50;
+            position: relative
+        }
+
+        .stime {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .02em
+        }
+
+        .sicons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px
+        }
+
+        /* GLASS */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(24px) saturate(1.8);
+            border: 1px solid var(--border);
+            border-radius: 20px
+        }
+
+        /* ═══ SPLASH ═══ */
+        .splash-inner {
+            width: 390px;
+            height: 844px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 32px
+        }
+
+        .logo-anim {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin-bottom: 28px
+        }
+
+        .logo-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation: ringRotate 3s linear infinite
+        }
+
+        .lr1 {
+            border-top-color: var(--cyan);
+            border-right-color: rgba(0,212,255,.2);
+            animation-duration: 2.5s
+        }
+
+        .lr2 {
+            inset: 8px;
+            border-bottom-color: var(--blue);
+            border-left-color: rgba(74,158,255,.2);
+            animation-duration: 3.5s;
+            animation-direction: reverse
+        }
+
+        .lr3 {
+            inset: 18px;
+            border-top-color: var(--teal);
+            border-right-color: rgba(0,229,200,.2);
+            animation-duration: 4s
+        }
+
+        @keyframes ringRotate {
+            from {
+                transform: rotate(0)
+            }
+
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .logo-core {
+            position: absolute;
+            inset: 28px;
+            background: radial-gradient(circle,rgba(0,212,255,.3),rgba(74,158,255,.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--cyan);
+            text-shadow: 0 0 20px rgba(0,212,255,.8);
+            animation: corePulse 2s ease-in-out infinite
+        }
+
+        @keyframes corePulse {
+            0%,100% {
+                box-shadow: 0 0 0 0 rgba(0,212,255,.3)
+            }
+
+            50% {
+                box-shadow: 0 0 0 12px rgba(0,212,255,0)
+            }
+        }
+
+        .app-name-big {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg,var(--cyan),var(--blue),var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -.02em;
+            margin-bottom: 6px
+        }
+
+        .app-tagline {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 40px;
+            text-align: center;
+            line-height: 1.5
+        }
+
+        .perm-section {
+            width: 100%;
+            margin-bottom: 28px
+        }
+
+        .perm-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            text-align: center
+        }
+
+        .perm-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .perm-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(120,220,255,.14);
+            transition: all .2s
+        }
+
+            .perm-card.granted {
+                border-color: rgba(0,232,122,.3);
+                background: rgba(0,232,122,.05)
+            }
+
+        .perm-icon {
+            font-size: 22px;
+            width: 32px;
+            text-align: center;
+            flex-shrink: 0
+        }
+
+        .perm-info {
+            flex: 1
+        }
+
+        .perm-name {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .perm-desc {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1px
+        }
+
+        .perm-toggle {
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.15);
+            position: relative;
+            cursor: pointer;
+            transition: all .3s;
+            flex-shrink: 0
+        }
+
+            .perm-toggle.on {
+                background: rgba(0,232,122,.3);
+                border-color: rgba(0,232,122,.5)
+            }
+
+            .perm-toggle::after {
+                content: '';
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--muted);
+                top: 2px;
+                left: 2px;
+                transition: all .3s
+            }
+
+            .perm-toggle.on::after {
+                background: var(--green);
+                left: 20px;
+                box-shadow: 0 0 8px rgba(0,232,122,.6)
+            }
+
+        .btn-full {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg,var(--cyan),var(--blue));
+            color: #040d1a;
+            box-shadow: 0 8px 30px rgba(0,212,255,.3);
+            transition: all .2s
+        }
+
+            .btn-full:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 40px rgba(0,212,255,.4)
+            }
+
+            .btn-full:active {
+                transform: translateY(1px)
+            }
+
+        /* ═══ LOGIN ═══ */
+        .login-wrap {
+            width: 390px;
+            height: 844px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 70px;
+            overflow-y: auto
+        }
+
+        .login-logo {
+            margin-bottom: 32px;
+            text-align: center
+        }
+
+        .login-logo-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
+            background: linear-gradient(135deg,rgba(0,212,255,.2),rgba(74,158,255,.2));
+            border: 1px solid rgba(0,212,255,.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--cyan);
+            margin: 0 auto 14px;
+            box-shadow: 0 0 40px rgba(0,212,255,.2)
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg,var(--cyan),var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .login-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px
+        }
+
+        .login-card {
+            width: calc(100% - 48px);
+            padding: 28px 24px;
+            border-radius: 24px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(120,220,255,.15);
+            backdrop-filter: blur(30px);
+            margin-bottom: 20px
+        }
+
+        .login-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: rgba(255,255,255,.05);
+            border-radius: 12px;
+            padding: 4px
+        }
+
+        .ltab {
+            flex: 1;
+            padding: 9px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s
+        }
+
+            .ltab.active {
+                background: rgba(0,212,255,.15);
+                color: var(--cyan)
+            }
+
+        .input-group {
+            margin-bottom: 16px
+        }
+
+        .input-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block
+        }
+
+        .glass-input {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(120,220,255,.18);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            outline: none;
+            transition: all .2s
+        }
+
+            .glass-input:focus {
+                border-color: rgba(0,212,255,.5);
+                background: rgba(0,212,255,.06);
+                box-shadow: 0 0 0 3px rgba(0,212,255,.1)
+            }
+
+            .glass-input::placeholder {
+                color: var(--muted)
+            }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0
+        }
+
+        .div-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,.08)
+        }
+
+        .div-text {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .bio-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px
+        }
+
+        .bio-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 10px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(120,220,255,.14);
+            cursor: pointer;
+            transition: all .2s
+        }
+
+            .bio-btn:hover {
+                border-color: rgba(0,212,255,.4);
+                background: rgba(0,212,255,.08)
+            }
+
+        .bio-icon {
+            font-size: 26px
+        }
+
+        .bio-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: .04em
+        }
+
+        /* ═══ SCAN MODAL ═══ */
+        .scan-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(4,13,26,.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s
+        }
+
+            .scan-modal.show {
+                opacity: 1;
+                pointer-events: all
+            }
+
+        .scan-inner {
+            width: 300px;
+            padding: 32px 24px;
+            border-radius: 24px;
+            background: rgba(8,20,40,.95);
+            border: 1px solid rgba(0,212,255,.25);
+            text-align: center
+        }
+
+        .scan-ring-wrap {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 24px;
+            position: relative
+        }
+
+        .face-video {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border: 2px solid rgba(0,212,255,.3);
+            display: none
+        }
+
+            .face-video.show {
+                display: block
+            }
+
+        .scan-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation: scanRotate 2s linear infinite
+        }
+
+        .sr1 {
+            border-top-color: var(--cyan)
+        }
+
+        .sr2 {
+            inset: 10px;
+            border-right-color: var(--blue);
+            animation-duration: 1.5s;
+            animation-direction: reverse
+        }
+
+        .sr3 {
+            inset: 20px;
+            border-bottom-color: var(--teal);
+            animation-duration: 3s
+        }
+
+        @keyframes scanRotate {
+            from {
+                transform: rotate(0)
+            }
+
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .scan-placeholder {
+            position: absolute;
+            inset: 20px;
+            border-radius: 50%;
+            background: rgba(0,212,255,.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px
+        }
+
+        .scan-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px
+        }
+
+        .scan-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.5
+        }
+
+        .scan-progress {
+            height: 3px;
+            background: rgba(255,255,255,.06);
+            border-radius: 2px;
+            overflow: hidden
+        }
+
+        .scan-bar {
+            height: 100%;
+            background: linear-gradient(90deg,var(--cyan),var(--blue));
+            border-radius: 2px;
+            width: 0%;
+            transition: width .1s
+        }
+
+        .scan-status {
+            font-size: 11px;
+            color: var(--cyan);
+            margin-top: 10px;
+            font-family: var(--mono)
+        }
+
+        /* ═══ OTP ═══ */
+        .otp-wrap {
+            width: 390px;
+            height: 844px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 32px
+        }
+
+        /* ═══ MAIN APP ═══ */
+        .main-wrap {
+            width: 390px;
+            height: 844px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative
+        }
+
+        .top-nav {
+            padding: 10px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 20
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 900;
+            background: linear-gradient(135deg,var(--cyan),var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all .2s;
+            backdrop-filter: blur(10px);
+            position: relative
+        }
+
+            .nav-btn:hover {
+                border-color: rgba(0,212,255,.4)
+            }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            box-shadow: 0 0 6px var(--cyan);
+            animation: dotPulse 2s infinite
+        }
+
+        @keyframes dotPulse {
+            0%,100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px 20px 100px;
+            scroll-behavior: smooth
+        }
+
+            .content-area::-webkit-scrollbar {
+                width: 0
+            }
+
+        /* TAB BAR */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            padding: 10px 20px 24px;
+            background: rgba(4,13,26,.85);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(120,220,255,.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50
+        }
+
+        .tb-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all .2s;
+            padding: 6px 14px;
+            border-radius: 12px
+        }
+
+            .tb-item.active {
+                background: rgba(0,212,255,.1)
+            }
+
+        .tb-icon {
+            font-size: 22px;
+            filter: grayscale(1) opacity(.5);
+            transition: all .2s
+        }
+
+        .tb-item.active .tb-icon {
+            filter: none
+        }
+
+        .tb-label {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 600;
+            transition: all .2s
+        }
+
+        .tb-item.active .tb-label {
+            color: var(--cyan)
+        }
+
+        .tab-page {
+            display: none
+        }
+
+            .tab-page.active {
+                display: block
+            }
+
+        /* CARDS */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-bottom: 12px
+        }
+
+        .bt-card {
+            padding: 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg,rgba(0,212,255,.08),rgba(74,158,255,.06));
+            border: 1px solid rgba(0,212,255,.2);
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden
+        }
+
+            .bt-card:hover {
+                border-color: rgba(0,212,255,.35)
+            }
+
+        .bt-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px
+        }
+
+        .bt-left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .bt-ico {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(0,212,255,.15);
+            border: 1px solid rgba(0,212,255,.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px
+        }
+
+        .bt-name {
+            font-size: 16px;
+            font-weight: 700
+        }
+
+        .bt-model {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .bt-status-pill {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(0,232,122,.12);
+            color: var(--green);
+            border: 1px solid rgba(0,232,122,.25);
+            display: flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .bt-pulse {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: dotPulse 1.5s infinite
+        }
+
+        .bt-metrics {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px
+        }
+
+        .bt-metric {
+            text-align: center
+        }
+
+        .bt-metric-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--cyan);
+            font-family: var(--mono)
+        }
+
+        .bt-metric-label {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: rgba(255,255,255,.08);
+            stroke-width: 4
+        }
+
+        .ring-fg {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 251;
+            transform-origin: center;
+            transform: rotate(-90deg)
+        }
+
+        .scan-devices-btn {
+            width: 100%;
+            padding: 13px;
+            border-radius: 14px;
+            border: 1px solid rgba(120,220,255,.14);
+            background: rgba(255,255,255,.05);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all .2s;
+            margin-bottom: 16px
+        }
+
+            .scan-devices-btn:hover {
+                background: rgba(0,212,255,.06);
+                border-color: rgba(0,212,255,.3)
+            }
+
+        .spin {
+            animation: spinAnim 1s linear infinite;
+            display: inline-block
+        }
+
+        @keyframes spinAnim {
+            from {
+                transform: rotate(0)
+            }
+
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        .quick-card {
+            padding: 18px 16px;
+            border-radius: 18px;
+            background: var(--glass);
+            border: 1px solid var(--border2);
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden
+        }
+
+            .quick-card:hover {
+                border-color: rgba(0,212,255,.3);
+                transform: translateY(-2px)
+            }
+
+        .qc-icon {
+            font-size: 26px;
+            margin-bottom: 10px;
+            display: block
+        }
+
+        .qc-label {
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .qc-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px
+        }
+
+        .qc-glow {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: .3
+        }
+
+        .location-card {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(176,110,255,.06);
+            border: 1px solid rgba(176,110,255,.2);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px
+        }
+
+        .loc-icon {
+            font-size: 22px
+        }
+
+        .loc-info {
+            flex: 1
+        }
+
+        .loc-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--purple)
+        }
+
+        .loc-addr {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--glass);
+            border: 1px solid var(--border2);
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 10px
+        }
+
+            .device-item:hover {
+                border-color: rgba(0,212,255,.3)
+            }
+
+            .device-item.connected {
+                border-color: rgba(0,232,122,.25);
+                background: rgba(0,232,122,.04)
+            }
+
+        .dev-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        .dev-info {
+            flex: 1
+        }
+
+        .dev-name {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        .dev-id {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--mono);
+            margin-top: 2px
+        }
+
+        .dev-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            flex-shrink: 0
+        }
+
+        .db-conn {
+            background: rgba(0,232,122,.1);
+            color: var(--green);
+            border: 1px solid rgba(0,232,122,.25)
+        }
+
+        .db-avail {
+            background: rgba(0,212,255,.08);
+            color: var(--cyan);
+            border: 1px solid rgba(0,212,255,.2)
+        }
+
+        .db-disc {
+            background: rgba(255,255,255,.05);
+            color: var(--muted);
+            border: 1px solid rgba(255,255,255,.1)
+        }
+
+        /* GEMINI TAB */
+        .gemini-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg,rgba(74,158,255,.08),rgba(176,110,255,.06));
+            border: 1px solid rgba(74,158,255,.2)
+        }
+
+        .gemini-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg,#4285f4,#ea4335,#fbbc04,#34a853);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            color: white
+        }
+
+        .gemini-name {
+            font-size: 15px;
+            font-weight: 700
+        }
+
+        .gemini-model {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--mono)
+        }
+
+        .context-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(74,158,255,.12);
+            color: var(--blue);
+            border: 1px solid rgba(74,158,255,.25);
+            font-family: var(--mono)
+        }
+
+        .msgs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+
+        .msg2 {
+            display: flex;
+            gap: 8px;
+            animation: fadeSlide .3s ease
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .msg2.user {
+            flex-direction: row-reverse
+        }
+
+        .ava {
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+            .ava.ai {
+                background: linear-gradient(135deg,#4285f4,#34a853);
+                color: white
+            }
+
+            .ava.user {
+                background: linear-gradient(135deg,var(--cyan),var(--blue));
+                color: #040d1a
+            }
+
+        .bubble {
+            max-width: 78%;
+            padding: 11px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.6
+        }
+
+        .msg2.ai .bubble {
+            background: rgba(74,158,255,.1);
+            border: 1px solid rgba(74,158,255,.2)
+        }
+
+        .msg2.user .bubble {
+            background: rgba(0,212,255,.1);
+            border: 1px solid rgba(0,212,255,.2)
+        }
+
+        .img-preview {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 6px;
+            max-height: 180px;
+            object-fit: cover
+        }
+
+        .msg-time {
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-family: var(--mono)
+        }
+
+        .chat-tools {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 9px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background: rgba(255,255,255,.05);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all .2s
+        }
+
+            .tool-btn:hover {
+                background: rgba(0,212,255,.08);
+                border-color: rgba(0,212,255,.3)
+            }
+
+            .tool-btn.recording {
+                background: rgba(255,79,123,.1);
+                border-color: rgba(255,79,123,.4);
+                color: var(--danger)
+            }
+
+        .chat-input-wrap {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end
+        }
+
+        .chat-ta {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            transition: all .2s;
+            min-height: 44px;
+            max-height: 100px
+        }
+
+            .chat-ta:focus {
+                border-color: rgba(0,212,255,.45)
+            }
+
+            .chat-ta::placeholder {
+                color: var(--muted)
+            }
+
+        .send-btn2 {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg,var(--cyan),var(--blue));
+            color: #040d1a;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s
+        }
+
+            .send-btn2:hover {
+                transform: scale(1.06);
+                box-shadow: 0 0 20px rgba(0,212,255,.4)
+            }
+
+        /* CAMERA */
+        .cam-view {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            aspect-ratio: 3/4;
+            background: rgba(0,0,0,.4);
+            border: 1px solid var(--border)
+        }
+
+        #camFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .cam-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom,transparent 60%,rgba(4,13,26,.8) 100%);
+            pointer-events: none
+        }
+
+        .cam-corners {
+            position: absolute;
+            inset: 12px;
+            pointer-events: none
+        }
+
+        .cc {
+            position: absolute;
+            width: 24px;
+            height: 24px
+        }
+
+        .cc-tl {
+            top: 0;
+            left: 0;
+            border-top: 2px solid var(--cyan);
+            border-left: 2px solid var(--cyan);
+            border-radius: 4px 0 0 0
+        }
+
+        .cc-tr {
+            top: 0;
+            right: 0;
+            border-top: 2px solid var(--cyan);
+            border-right: 2px solid var(--cyan);
+            border-radius: 0 4px 0 0
+        }
+
+        .cc-bl {
+            bottom: 0;
+            left: 0;
+            border-bottom: 2px solid var(--cyan);
+            border-left: 2px solid var(--cyan);
+            border-radius: 0 0 0 4px
+        }
+
+        .cc-br {
+            bottom: 0;
+            right: 0;
+            border-bottom: 2px solid var(--cyan);
+            border-right: 2px solid var(--cyan);
+            border-radius: 0 0 4px 0
+        }
+
+        .ai-scan-line {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: linear-gradient(90deg,transparent,var(--cyan),transparent);
+            animation: scanLine 3s ease-in-out infinite;
+            top: 12px
+        }
+
+        @keyframes scanLine {
+            0% {
+                top: 12px;
+                opacity: 1
+            }
+
+            100% {
+                top: calc(100% - 12px);
+                opacity: .2
+            }
+        }
+
+        .cam-bottom {
+            position: absolute;
+            bottom: 14px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 0 20px
+        }
+
+        .cam-shutter {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.15);
+            border: 3px solid rgba(255,255,255,.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all .2s
+        }
+
+            .cam-shutter:hover {
+                transform: scale(1.05)
+            }
+
+        .cam-side-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(4,13,26,.6);
+            border: 1px solid rgba(255,255,255,.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .cam-result {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(74,158,255,.06);
+            border: 1px solid rgba(74,158,255,.2);
+            font-size: 12px;
+            line-height: 1.7;
+            display: none
+        }
+
+            .cam-result.show {
+                display: block
+            }
+
+        .cam-result-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 6px
+        }
+
+        /* VOICE */
+        .voice-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0 10px
+        }
+
+        .voice-ring-wrap {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin-bottom: 24px
+        }
+
+        .voice-center-btn {
+            position: absolute;
+            inset: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,rgba(0,212,255,.2),rgba(74,158,255,.15));
+            border: 1px solid rgba(0,212,255,.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+            .voice-center-btn.active {
+                background: linear-gradient(135deg,rgba(255,79,123,.2),rgba(255,79,123,.1));
+                border-color: rgba(255,79,123,.5)
+            }
+
+        .voice-ring-outer {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(0,212,255,.2);
+            animation: voiceRing 3s ease-in-out infinite
+        }
+
+            .voice-ring-outer.r2 {
+                inset: 10px;
+                animation-delay: -1s;
+                border-color: rgba(74,158,255,.2)
+            }
+
+            .voice-ring-outer.r3 {
+                inset: 20px;
+                animation-delay: -2s;
+                border-color: rgba(0,229,200,.2)
+            }
+
+        @keyframes voiceRing {
+            0%,100% {
+                transform: scale(1);
+                opacity: .5
+            }
+
+            50% {
+                transform: scale(1.04);
+                opacity: 1
+            }
+        }
+
+        .voice-ring-outer.recording {
+            animation: recordingPulse .8s ease-in-out infinite;
+            border-color: rgba(255,79,123,.5)
+        }
+
+        @keyframes recordingPulse {
+            0%,100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.06)
+            }
+        }
+
+        .voice-status {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px
+        }
+
+        .voice-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 20px
+        }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 40px;
+            margin-bottom: 20px
+        }
+
+        .wave-bar {
+            width: 4px;
+            border-radius: 2px;
+            background: var(--cyan);
+            opacity: .5;
+            animation: waveBounce 1.2s ease-in-out infinite;
+            height: 4px;
+            transition: height .1s
+        }
+
+        .waveform.active .wave-bar {
+            opacity: 1
+        }
+
+        @keyframes waveBounce {
+            0%,100% {
+                transform: scaleY(.3)
+            }
+
+            50% {
+                transform: scaleY(1)
+            }
+        }
+
+        .transcript-box {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid var(--border2);
+            font-size: 14px;
+            line-height: 1.7;
+            min-height: 80px;
+            margin-bottom: 14px;
+            color: var(--muted)
+        }
+
+            .transcript-box.has-text {
+                color: var(--text)
+            }
+
+        .voice-action-row {
+            display: flex;
+            gap: 10px;
+            width: 100%
+        }
+
+        .voice-action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            transition: all .2s
+        }
+
+        .vab-primary {
+            background: linear-gradient(135deg,var(--cyan),var(--blue));
+            color: #040d1a
+        }
+
+        .vab-secondary {
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border2);
+            color: var(--text)
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(8,20,40,.95);
+            border: 1px solid rgba(0,212,255,.3);
+            border-radius: 14px;
+            padding: 11px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            opacity: 0;
+            transition: all .3s;
+            z-index: 500;
+            white-space: nowrap;
+            backdrop-filter: blur(20px)
+        }
+
+            .toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 4px
+        }
+
+        .td {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--blue);
+            opacity: .4;
+            animation: tdBounce 1.2s infinite
+        }
+
+            .td:nth-child(2) {
+                animation-delay: .2s
+            }
+
+            .td:nth-child(3) {
+                animation-delay: .4s
+            }
+
+        @keyframes tdBounce {
+            0%,60%,100% {
+                transform: translateY(0);
+                opacity: .4
+            }
+
+            30% {
+                transform: translateY(-5px);
+                opacity: 1
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-scene">
+        <div class="bg-blob bb1"></div>
+        <div class="bg-blob bb2"></div>
+        <div class="bg-blob bb3"></div>
+        <div class="bg-grid"></div>
+    </div>
+
+    <!-- ═════════════ PERMISSION SCREEN ═════════════ -->
+    <div class="screen" id="splashScreen">
+        <div class="splash-inner">
+            <div class="logo-anim">
+                <div class="logo-ring lr1"></div>
+                <div class="logo-ring lr2"></div>
+                <div class="logo-ring lr3"></div>
+                <div class="logo-core">L</div>
+            </div>
+            <div class="app-name-big">Loupes.AI</div>
+            <div class="app-tagline">Connected Intelligence · Powered by Gemini<br>Smart Glass · Voice · Vision · Automation</div>
+            <div class="perm-section">
+                <div class="perm-title">App Requires Access To</div>
+                <div class="perm-cards">
+                    <div class="perm-card" id="permLocation">
+                        <div class="perm-icon">📍</div>
+                        <div class="perm-info">
+                            <div class="perm-name">Location</div>
+                            <div class="perm-desc">For nearby device scanning & contextual AI</div>
+                        </div>
+                        <div class="perm-toggle" id="togLocation" onclick="togglePerm('Location','togLocation','permLocation')"></div>
+                    </div>
+                    <div class="perm-card" id="permCamera">
+                        <div class="perm-icon">📸</div>
+                        <div class="perm-info">
+                            <div class="perm-name">Camera</div>
+                            <div class="perm-desc">Capture images for Gemini AI analysis</div>
+                        </div>
+                        <div class="perm-toggle" id="togCamera" onclick="togglePerm('Camera','togCamera','permCamera')"></div>
+                    </div>
+                    <div class="perm-card" id="permMic">
+                        <div class="perm-icon">🎙️</div>
+                        <div class="perm-info">
+                            <div class="perm-name">Microphone</div>
+                            <div class="perm-desc">Voice commands & real-time speech recognition</div>
+                        </div>
+                        <div class="perm-toggle" id="togMic" onclick="togglePerm('Mic','togMic','permMic')"></div>
+                    </div>
+                    <div class="perm-card" id="permBluetooth">
+                        <div class="perm-icon">📡</div>
+                        <div class="perm-info">
+                            <div class="perm-name">Bluetooth</div>
+                            <div class="perm-desc">Connect to Loupes smart glass device</div>
+                        </div>
+                        <div class="perm-toggle" id="togBluetooth" onclick="togglePerm('Bluetooth','togBluetooth','permBluetooth')"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-full" onclick="goToLogin()">Continue to Loupes.AI →</button>
+        </div>
+    </div>
+
+    <!-- ═════════════ LOGIN SCREEN ═════════════ -->
+    <div class="screen hidden" id="loginScreen">
+        <div class="login-wrap">
+            <div class="login-logo">
+                <div class="login-logo-icon">L</div>
+                <div class="login-title">Loupes.AI</div>
+                <div class="login-sub">Sign in to your smart glass account</div>
+            </div>
+            <div class="login-card">
+                <div class="login-tabs">
+                    <div class="ltab active" onclick="setLoginTab('phone',this)">📱 Phone</div>
+                    <div class="ltab" onclick="setLoginTab('email',this)">✉️ Email</div>
+                </div>
+                <div id="phoneForm">
+                    <div class="input-group">
+                        <label class="input-label">Phone Number</label>
+                        <input class="glass-input" id="phoneInput" type="tel" placeholder="+91 98765 43210">
+                    </div>
+                    <button class="btn-full" style="font-size:14px;padding:13px" onclick="sendOTP()">Send OTP →</button>
+                </div>
+                <div id="emailForm" style="display:none">
+                    <div class="input-group">
+                        <label class="input-label">Email Address</label>
+                        <input class="glass-input" type="email" placeholder="you@loupes.ai">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input class="glass-input" type="password" placeholder="••••••••">
+                    </div>
+                    <button class="btn-full" style="font-size:14px;padding:13px" onclick="launchApp()">Sign In →</button>
+                </div>
+                <div class="divider">
+                    <div class="div-line"></div>
+                    <div class="div-text">OR USE BIOMETRICS</div>
+                    <div class="div-line"></div>
+                </div>
+                <div class="bio-methods">
+                    <div class="bio-btn" onclick="startScan('fingerprint')">
+                        <div class="bio-icon">👆</div>
+                        <div class="bio-label">FINGERPRINT</div>
+                    </div>
+                    <div class="bio-btn" onclick="startScan('face')">
+                        <div class="bio-icon">😊</div>
+                        <div class="bio-label">FACE ID</div>
+                    </div>
+                    <div class="bio-btn" onclick="startScan('eye')">
+                        <div class="bio-icon">👁️</div>
+                        <div class="bio-label">EYE SCAN</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═════════════ BIOMETRIC MODAL ═════════════ -->
+    <div class="scan-modal" id="scanModal">
+        <div class="scan-inner">
+            <div class="scan-ring-wrap">
+                <video class="face-video" id="faceVideo" autoplay playsinline muted></video>
+                <div class="scan-placeholder" id="scanPlaceholder">😊</div>
+                <div class="scan-ring sr1"></div>
+                <div class="scan-ring sr2"></div>
+                <div class="scan-ring sr3"></div>
+            </div>
+            <div class="scan-title" id="scanTitle">Face Recognition</div>
+            <div class="scan-sub" id="scanSub">Look at the camera.<br>Keep face in frame.</div>
+            <div class="scan-progress"><div class="scan-bar" id="scanBar"></div></div>
+            <div class="scan-status" id="scanStatus">Initializing scanner...</div>
+        </div>
+    </div>
+
+    <!-- ═════════════ OTP SCREEN ═════════════ -->
+    <div class="screen hidden" id="otpScreen">
+        <div class="otp-wrap">
+            <div style="font-size:48px;margin-bottom:20px">🔐</div>
+            <div style="font-size:24px;font-weight:800;margin-bottom:8px">Verify OTP</div>
+            <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:32px;line-height:1.6">Enter the 6-digit code sent to<br><span id="otpPhone" style="color:var(--cyan)"></span></div>
+            <div style="display:flex;gap:8px;margin-bottom:28px">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,0)" id="o0">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,1)" id="o1">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,2)" id="o2">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,3)" id="o3">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,4)" id="o4">
+                <input class="glass-input" style="width:46px;height:54px;text-align:center;font-size:20px;font-weight:700;padding:0" maxlength="1" oninput="otpInput(this,5)" id="o5">
+            </div>
+            <div style="font-size:12px;color:var(--muted);text-align:center">Demo OTP: <span style="color:var(--cyan);font-family:var(--mono)">1 2 3 4 5 6</span></div>
+        </div>
+    </div>
+
+    <!-- ═════════════ MAIN APP ═════════════ -->
+    <div class="screen hidden" id="mainApp">
+        <div class="main-wrap">
+            <div class="notch">
+                <div class="notch-dot"></div>
+                <div class="notch-cam"></div>
+                <div class="notch-dot"></div>
+            </div>
+            <div class="status-bar">
+                <div class="stime" id="clockTime">9:41</div>
+                <div class="sicons">
+                    <span>📶</span>
+                    <span>🔋</span>
+                </div>
+            </div>
+            <div class="top-nav">
+                <div class="nav-logo">Loupes.AI</div>
+                <div class="nav-right">
+                    <div class="nav-btn" onclick="showToast('🔔 No new notifications')" style="position:relative">🔔<div class="notif-dot"></div></div>
+                    <div class="nav-btn" onclick="showToast('👤 Signed in securely · Biometric verified')">👤</div>
+                </div>
+            </div>
+
+            <div class="content-area">
+
+                <!-- HOME TAB -->
+                <div class="tab-page active" id="tabHome">
+                    <div style="margin-bottom:18px">
+                        <div style="font-size:12px;color:var(--muted)">Good morning 👋</div>
+                        <div style="font-size:24px;font-weight:800;margin-top:2px">Welcome back</div>
+                    </div>
+                    <div class="location-card">
+                        <div class="loc-icon">📍</div>
+                        <div class="loc-info">
+                            <div class="loc-title">Current Location</div>
+                            <div class="loc-addr" id="locationText">Detecting location...</div>
+                        </div>
+                    </div>
+                    <div class="bt-card">
+                        <div class="bt-header">
+                            <div class="bt-left">
+                                <div class="bt-ico">🥽</div>
+                                <div>
+                                    <div class="bt-name">Loupes Glass L1</div>
+                                    <div class="bt-model">BLE 5.2 · Smart Glass · Paired</div>
+                                </div>
+                            </div>
+                            <div class="bt-status-pill"><div class="bt-pulse"></div>Connected</div>
+                        </div>
+                        <div class="bt-metrics">
+                            <div class="bt-metric">
+                                <svg width="54" height="54" viewBox="0 0 90 90">
+                                    <circle class="ring-bg" cx="45" cy="45" r="38" />
+                                    <circle class="ring-fg" cx="45" cy="45" r="38" style="stroke:var(--green);stroke-dashoffset:50" />
+                                </svg>
+                                <div class="bt-metric-val" style="color:var(--green)">84%</div>
+                                <div class="bt-metric-label">Battery</div>
+                            </div>
+                            <div class="bt-metric">
+                                <svg width="54" height="54" viewBox="0 0 90 90">
+                                    <circle class="ring-bg" cx="45" cy="45" r="38" />
+                                    <circle class="ring-fg" cx="45" cy="45" r="38" style="stroke:var(--cyan);stroke-dashoffset:90" />
+                                </svg>
+                                <div class="bt-metric-val">68%</div>
+                                <div class="bt-metric-label">Signal</div>
+                            </div>
+                            <div class="bt-metric">
+                                <svg width="54" height="54" viewBox="0 0 90 90">
+                                    <circle class="ring-bg" cx="45" cy="45" r="38" />
+                                    <circle class="ring-fg" cx="45" cy="45" r="38" style="stroke:var(--blue);stroke-dashoffset:20" />
+                                </svg>
+                                <div class="bt-metric-val" style="color:var(--blue)">94%</div>
+                                <div class="bt-metric-label">Sync</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="scan-devices-btn" id="scanBtn" onclick="startBTScan()">
+                        <span id="scanBtnIcon">📡</span><span id="scanBtnText">Scan for Bluetooth Devices</span>
+                    </button>
+                    <div class="section-title">Quick Actions</div>
+                    <div class="quick-grid">
+                        <div class="quick-card" onclick="switchTab('camera')">
+                            <div class="qc-glow" style="background:var(--cyan)"></div>
+                            <span class="qc-icon">📸</span>
+                            <div class="qc-label">AI Camera</div>
+                            <div class="qc-sub">Capture & Gemini analysis</div>
+                        </div>
+                        <div class="quick-card" onclick="switchTab('voice')">
+                            <div class="qc-glow" style="background:var(--purple)"></div>
+                            <span class="qc-icon">🎙️</span>
+                            <div class="qc-label">Voice AI</div>
+                            <div class="qc-sub">Speech recognition</div>
+                        </div>
+                        <div class="quick-card" onclick="switchTab('gemini')">
+                            <div class="qc-glow" style="background:var(--blue)"></div>
+                            <span class="qc-icon">✦</span>
+                            <div class="qc-label">Ask Gemini</div>
+                            <div class="qc-sub">AI assistant chat</div>
+                        </div>
+                        <div class="quick-card" onclick="switchTab('devices')">
+                            <div class="qc-glow" style="background:var(--teal)"></div>
+                            <span class="qc-icon">⬡</span>
+                            <div class="qc-label">Devices</div>
+                            <div class="qc-sub">Manage BLE devices</div>
+                        </div>
+                    </div>
+                    <div class="section-title">Recent AI Activity</div>
+                    <div class="device-item"><div class="dev-icon">✦</div><div class="dev-info"><div class="dev-name">Gemini analyzed 3 images</div><div class="dev-id">via Loupes Glass · 12m ago</div></div><div class="dev-badge db-conn">Done</div></div>
+                    <div class="device-item"><div class="dev-icon">🎙️</div><div class="dev-info"><div class="dev-name">"Set reminder for 3PM"</div><div class="dev-id">Voice processed · 34m ago</div></div><div class="dev-badge db-conn">Done</div></div>
+                    <div class="device-item"><div class="dev-icon">📡</div><div class="dev-info"><div class="dev-name">n8n workflow triggered</div><div class="dev-id">Email → AI → Slack · 1h ago</div></div><div class="dev-badge db-conn">Done</div></div>
+                </div>
+
+                <!-- GEMINI TAB -->
+                <div class="tab-page" id="tabGemini">
+                    <div class="gemini-header">
+                        <div class="gemini-logo">G</div>
+                        <div style="flex:1">
+                            <div class="gemini-name">Gemini AI Assistant</div>
+                            <div class="gemini-model">gemini-2.0-flash-exp</div>
+                        </div>
+                        <div class="context-badge">1M ctx</div>
+                    </div>
+                    <div class="msgs" id="geminiMsgs">
+                        <div class="msg2 ai">
+                            <div class="ava ai">G</div>
+                            <div>
+                                <div class="bubble">Hello! I'm Gemini AI connected to your Loupes Glass. I can analyze camera images, respond to voice commands, explain what you see, and help with automations. What can I help with? 🥽</div>
+                                <div class="msg-time">Gemini 2.0 Flash · now</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-tools">
+                        <button class="tool-btn" onclick="switchTab('camera')" style="flex:.8">📸 Camera</button>
+                        <button class="tool-btn" id="voiceToolBtn" onclick="toggleVoiceRecord()">🎙️ Voice</button>
+                        <button class="tool-btn" onclick="clearChat()">🗑️ Clear</button>
+                    </div>
+                    <div class="chat-input-wrap">
+                        <textarea class="chat-ta" id="geminiInput" placeholder="Ask Gemini anything..." rows="1" onkeydown="handleGKey(event)"></textarea>
+                        <button class="send-btn2" onclick="sendGemini()">➤</button>
+                    </div>
+                </div>
+
+                <!-- CAMERA TAB -->
+                <div class="tab-page" id="tabCamera">
+                    <div class="section-title">AI Vision · Gemini Analysis</div>
+                    <div class="cam-view">
+                        <video id="camFeed" autoplay playsinline muted></video>
+                        <canvas id="camCanvas" style="display:none"></canvas>
+                        <div class="cam-overlay"></div>
+                        <div class="cam-corners">
+                            <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+                            <div class="cc cc-bl"></div><div class="cc cc-br"></div>
+                        </div>
+                        <div class="ai-scan-line"></div>
+                        <div class="cam-bottom">
+                            <div class="cam-side-btn" onclick="flipCamera()">🔄</div>
+                            <div class="cam-shutter" onclick="capturePhoto()">📸</div>
+                            <div class="cam-side-btn" onclick="switchTab('gemini')">✦</div>
+                        </div>
+                    </div>
+                    <div class="cam-result" id="camResult">
+                        <div class="cam-result-title">✦ Gemini Analysis</div>
+                        <div id="camResultText"></div>
+                    </div>
+                </div>
+
+                <!-- VOICE TAB -->
+                <div class="tab-page" id="tabVoice">
+                    <div class="section-title">Voice Recognition · AI Commands</div>
+                    <div class="voice-section">
+                        <div class="voice-ring-wrap">
+                            <div class="voice-ring-outer"></div>
+                            <div class="voice-ring-outer r2"></div>
+                            <div class="voice-ring-outer r3"></div>
+                            <div class="voice-center-btn" id="voiceMainBtn" onclick="toggleMainVoice()">🎙️</div>
+                        </div>
+                        <div class="voice-status" id="voiceStatus">Tap to speak</div>
+                        <div class="voice-sub" id="voiceSub">Voice commands powered by Gemini AI</div>
+                        <div class="waveform" id="waveform">
+                            <div class="wave-bar" style="animation-delay:.0s;height:6px"></div>
+                            <div class="wave-bar" style="animation-delay:.1s;height:10px"></div>
+                            <div class="wave-bar" style="animation-delay:.2s;height:18px"></div>
+                            <div class="wave-bar" style="animation-delay:.3s;height:26px"></div>
+                            <div class="wave-bar" style="animation-delay:.4s;height:32px"></div>
+                            <div class="wave-bar" style="animation-delay:.5s;height:26px"></div>
+                            <div class="wave-bar" style="animation-delay:.6s;height:18px"></div>
+                            <div class="wave-bar" style="animation-delay:.7s;height:10px"></div>
+                            <div class="wave-bar" style="animation-delay:.8s;height:6px"></div>
+                        </div>
+                    </div>
+                    <div class="transcript-box" id="transcriptBox">Transcript will appear here when you speak...</div>
+                    <div class="voice-action-row">
+                        <button class="voice-action-btn vab-primary" onclick="sendVoiceToGemini()">Send to Gemini ✦</button>
+                        <button class="voice-action-btn vab-secondary" onclick="clearTranscript()">Clear</button>
+                    </div>
+                    <div style="margin-top:16px">
+                        <div class="section-title">Recent Voice Commands</div>
+                        <div class="device-item"><div class="dev-icon">🎙️</div><div class="dev-info"><div class="dev-name">"What is this building?"</div><div class="dev-id">Gemini responded · 8m ago</div></div></div>
+                        <div class="device-item"><div class="dev-icon">🎙️</div><div class="dev-info"><div class="dev-name">"Set reminder 5PM meeting"</div><div class="dev-id">Created · 22m ago</div></div></div>
+                        <div class="device-item"><div class="dev-icon">🎙️</div><div class="dev-info"><div class="dev-name">"Translate sign to English"</div><div class="dev-id">Done · 1h ago</div></div></div>
+                    </div>
+                </div>
+
+                <!-- DEVICES TAB -->
+                <div class="tab-page" id="tabDevices">
+                    <div class="section-title">Paired Devices</div>
+                    <div class="device-item connected"><div class="dev-icon">🥽</div><div class="dev-info"><div class="dev-name">Loupes Glass L1</div><div class="dev-id">F4:3E:A2:1C:88:DD · BLE 5.2</div></div><div class="dev-badge db-conn">● Live</div></div>
+                    <div class="device-item"><div class="dev-icon">⌚</div><div class="dev-info"><div class="dev-name">Smart Watch Pro</div><div class="dev-id">A1:B2:C3:44:55:66 · BLE 5.0</div></div><div class="dev-badge db-avail">Pair</div></div>
+                    <div class="device-item"><div class="dev-icon">🎧</div><div class="dev-info"><div class="dev-name">Loupes Audio S2</div><div class="dev-id">D4:E5:F6:77:88:99 · BLE 5.1</div></div><div class="dev-badge db-avail">Pair</div></div>
+                    <div class="device-item"><div class="dev-icon">📡</div><div class="dev-info"><div class="dev-name">BLE Hub Node</div><div class="dev-id">11:22:33:44:55:AA · BLE 5.2</div></div><div class="dev-badge db-disc">Offline</div></div>
+                    <button class="scan-devices-btn" style="margin-top:8px" onclick="startBTScan()">📡 Scan for New Devices</button>
+                    <div class="section-title" style="margin-top:8px">Device Health</div>
+                    <div style="padding:16px;border-radius:16px;background:var(--glass);border:1px solid var(--border2)">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Battery</div><div style="font-size:22px;font-weight:800;color:var(--green);font-family:var(--mono)">84%</div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="width:84%;height:100%;background:var(--green);border-radius:2px"></div></div></div>
+                            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Signal</div><div style="font-size:22px;font-weight:800;color:var(--cyan);font-family:var(--mono)">-68dBm</div></div>
+                            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Latency</div><div style="font-size:22px;font-weight:800;color:var(--blue);font-family:var(--mono)">12ms</div></div>
+                            <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">AI Uptime</div><div style="font-size:22px;font-weight:800;color:var(--purple);font-family:var(--mono)">99.8%</div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- content-area -->
+
+            <div class="tab-bar">
+                <div class="tb-item active" id="tbHome" onclick="switchTab('home')"><div class="tb-icon">🏠</div><div class="tb-label">Home</div></div>
+                <div class="tb-item" id="tbGemini" onclick="switchTab('gemini')"><div class="tb-icon">✦</div><div class="tb-label">Gemini</div></div>
+                <div class="tb-item" id="tbCamera" onclick="switchTab('camera')"><div class="tb-icon">📸</div><div class="tb-label">Camera</div></div>
+                <div class="tb-item" id="tbVoice" onclick="switchTab('voice')"><div class="tb-icon">🎙️</div><div class="tb-label">Voice</div></div>
+                <div class="tb-item" id="tbDevices" onclick="switchTab('devices')"><div class="tb-icon">📡</div><div class="tb-label">Devices</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+// ── CLOCK
+function updateClock(){const n=new Date(),el=document.getElementById('clockTime');if(el)el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
+updateClock();setInterval(updateClock,10000);
+
+// ── SCREEN
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
+
+// ── PERMISSIONS
+function togglePerm(key,togId,cardId){
+  const tog=document.getElementById(togId),card=document.getElementById(cardId);
+  const on=tog.classList.toggle('on');
+  card.classList.toggle('granted',on);
+  if(on){
+    if(key==='Location')getLocation();
+    showToast('✅ '+key+' access granted');
+  }
+}
+
+function goToLogin(){
+  ['togLocation','togCamera','togMic','togBluetooth'].forEach((id,i)=>{
+    const tog=document.getElementById(id);
+    if(!tog.classList.contains('on')){
+      tog.classList.add('on');
+      document.getElementById(['permLocation','permCamera','permMic','permBluetooth'][i]).classList.add('granted');
+    }
+  });
+  showScreen('loginScreen');
+}
+
+// Auto-grant with animation on load
+setTimeout(()=>{
+  ['togLocation','togCamera','togMic','togBluetooth'].forEach((id,i)=>{
+    const cardIds=['permLocation','permCamera','permMic','permBluetooth'];
+    setTimeout(()=>{
+      document.getElementById(id).classList.add('on');
+      document.getElementById(cardIds[i]).classList.add('granted');
+    },i*400+600);
+  });
+},300);
+
+// ── LOGIN
+function setLoginTab(tab,el){
+  document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('phoneForm').style.display=tab==='phone'?'block':'none';
+  document.getElementById('emailForm').style.display=tab==='email'?'block':'none';
+}
+
+function sendOTP(){
+  const ph=document.getElementById('phoneInput').value||'+91 98765 43210';
+  document.getElementById('otpPhone').textContent=ph;
+  showScreen('otpScreen');
+  showToast('📱 OTP sent to '+ph);
+}
+
+function otpInput(el,idx){
+  if(el.value.length===1&&idx<5)document.getElementById('o'+(idx+1)).focus();
+  const full=[0,1,2,3,4,5].map(i=>document.getElementById('o'+i).value).join('');
+  if(full==='123456'){showToast('✅ OTP Verified!');setTimeout(launchApp,600)}
+}
+
+// ── BIOMETRIC
+let scanInt;
+function startScan(type){
+  const cfg={
+    fingerprint:{title:'Fingerprint Scan',sub:'Place your finger on the sensor.',icon:'👆',steps:['Reading fingerprint...','Extracting ridges...','Matching identity...','Verified ✓']},
+    face:{title:'Face Recognition',sub:'Look at the camera.\nKeep your face in frame.',icon:'😊',steps:['Detecting face...','Mapping features...','Confirming identity...','Face verified ✓'],cam:true},
+    eye:{title:'Iris / Eye Scan',sub:'Look into the camera.\nBlink naturally.',icon:'👁️',steps:['Locating iris...','Scanning pattern...','Matching retinal data...','Eye verified ✓'],cam:true}
+  }[type];
+  document.getElementById('scanTitle').textContent=cfg.title;
+  document.getElementById('scanSub').textContent=cfg.sub;
+  document.getElementById('scanPlaceholder').textContent=cfg.icon;
+  document.getElementById('scanBar').style.width='0%';
+  document.getElementById('scanStatus').textContent='Initializing...';
+  document.getElementById('scanModal').classList.add('show');
+  if(cfg.cam){
+    const vid=document.getElementById('faceVideo');
+    navigator.mediaDevices?.getUserMedia({video:{facingMode:'user'}}).then(s=>{vid.srcObject=s;vid.classList.add('show');document.getElementById('scanPlaceholder').style.display='none'}).catch(()=>{});
+  }
+  let prog=0,step=0;clearInterval(scanInt);
+  scanInt=setInterval(()=>{
+    prog+=1.6;
+    document.getElementById('scanBar').style.width=Math.min(prog,100)+'%';
+    if(prog>step*25&&step<cfg.steps.length){document.getElementById('scanStatus').textContent=cfg.steps[step];step++}
+    if(prog>=100){
+      clearInterval(scanInt);
+      setTimeout(()=>{
+        document.getElementById('scanModal').classList.remove('show');
+        const vid=document.getElementById('faceVideo');
+        vid.classList.remove('show');document.getElementById('scanPlaceholder').style.display='';
+        if(vid.srcObject){vid.srcObject.getTracks().forEach(t=>t.stop());vid.srcObject=null}
+        launchApp();
+      },500);
+    }
+  },50);
+}
+
+// ── LAUNCH
+function launchApp(){
+  showScreen('mainApp');
+  getLocation();
+  showToast('🥽 Loupes Glass L1 connected!');
+}
+
+// ── LOCATION
+function getLocation(){
+  const el=document.getElementById('locationText');
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{if(el)el.textContent='Lat '+p.coords.latitude.toFixed(4)+' · Lng '+p.coords.longitude.toFixed(4)},()=>{if(el)el.textContent='Ahmedabad, Gujarat, India'});
+  } else if(el) el.textContent='Ahmedabad, Gujarat, India';
+}
+
+// ── TAB NAV
+let currentTab='home';
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb-item').forEach(t=>t.classList.remove('active'));
+  const cap=tab.charAt(0).toUpperCase()+tab.slice(1);
+  document.getElementById('tab'+cap)?.classList.add('active');
+  document.getElementById('tb'+cap)?.classList.add('active');
+  if(tab==='camera')initCamera();
+}
+
+// ── CAMERA
+let camStream,frontCam=true;
+async function initCamera(){
+  try{
+    if(camStream)camStream.getTracks().forEach(t=>t.stop());
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:frontCam?'environment':'user',width:640,height:480}});
+    document.getElementById('camFeed').srcObject=camStream;
+  }catch(e){showToast('📸 '+(e.name==='NotAllowedError'?'Camera permission denied':'Camera not available'))}
+}
+function flipCamera(){frontCam=!frontCam;initCamera();showToast(frontCam?'📸 Rear camera':'🤳 Front camera')}
+async function capturePhoto(){
+  const vid=document.getElementById('camFeed');
+  if(!vid.srcObject){showToast('📸 Camera not active');return}
+  const canvas=document.getElementById('camCanvas');
+  canvas.width=vid.videoWidth||640;canvas.height=vid.videoHeight||480;
+  canvas.getContext('2d').drawImage(vid,0,0);
+  const dataUrl=canvas.toDataURL('image/jpeg',.8);
+  showToast('📸 Captured! Analyzing with Gemini...');
+  analyzeImage(dataUrl);
+}
+const imgAnalyses=[
+  '🔍 <strong>Gemini Vision Analysis:</strong><br><br>Image captured via Loupes Glass L1 at high resolution.<br><br>• <strong>Scene:</strong> Environment detected with multiple elements<br>• <strong>Objects:</strong> Items identified in foreground and background<br>• <strong>Text:</strong> No significant text found<br>• <strong>Safety:</strong> Normal environment ✅<br><br>Would you like a deeper analysis or AR overlay?',
+  '✨ <strong>Scene Understanding:</strong><br><br>Gemini processed this frame from your glass sensor.<br><br>• <strong>Lighting:</strong> Good visibility conditions<br>• <strong>Depth:</strong> Multi-layer spatial detected<br>• <strong>Color:</strong> Warm/neutral temperature<br>• <strong>Motion:</strong> Static scene<br><br>Shall I enable real-time AR labels on your glass?',
+  '🌐 <strong>Smart Glass Report:</strong><br><br>Loupes Glass AI Vision is active.<br><br>• <strong>People:</strong> Not detected<br>• <strong>Products/Brands:</strong> Scanning...<br>• <strong>Navigation:</strong> Indoor space confirmed<br>• <strong>Translation:</strong> No foreign text found<br><br>Swipe right on glass for AR mode.'
+];
+let imgIdx=0;
+function analyzeImage(dataUrl){
+  const res=document.getElementById('camResult'),txt=document.getElementById('camResultText');
+  res.classList.add('show');
+  txt.innerHTML='<div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  const msgs=document.getElementById('geminiMsgs');
+  const ud=document.createElement('div');ud.className='msg2 user';
+  ud.innerHTML=`<div class="ava user">U</div><div><div class="bubble"><img class="img-preview" src="${dataUrl}"><br>Analyze this image</div><div class="msg-time">You · now</div></div>`;
+  msgs.appendChild(ud);
+  setTimeout(()=>{
+    const r=imgAnalyses[imgIdx++%imgAnalyses.length];
+    txt.innerHTML=r;
+    const ad=document.createElement('div');ad.className='msg2 ai';
+    ad.innerHTML=`<div class="ava ai">G</div><div><div class="bubble">${r}</div><div class="msg-time">Gemini Vision · now</div></div>`;
+    msgs.appendChild(ad);msgs.scrollTop=msgs.scrollHeight;
+    showToast('✦ Analysis complete!');
+  },2000);
+}
+
+// ── GEMINI CHAT
+const gReplies=[
+  "Processing through Gemini 2.0 Flash connected to Loupes Glass... 🥽<br><br>Your glass sensors are all active. I can see you're in a well-lit environment. Would you like me to activate AR mode for visual assistance, or continue with voice commands?",
+  "Great question! Based on your location and glass sensor data, here's what I can tell you:<br><br>• Your device is synced at 94%<br>• No alerts from connected workflows<br>• 3 pending AI tasks in queue<br><br>Shall I process those now?",
+  "Through your Loupes Glass, I'm processing in real-time. BLE connection stable at -68dBm.<br><br>I'll analyze the context and provide an accurate response. Enable <strong>Hey Loupes</strong> hotword for hands-free AI. Anything else?",
+  "Gemini Vision is active. I analyzed your camera feed and voice input together:<br><br>1. AR overlay ready — swipe right to enable<br>2. Voice shortcut <strong>'Hey Loupes'</strong> available<br>3. n8n automation trigger available<br><br>Shall I set that up? ⚡"
+];
+let gIdx=0;
+function sendGemini(){
+  const inp=document.getElementById('geminiInput');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';appendMsg(text,'user');
+  const msgs=document.getElementById('geminiMsgs');
+  const t=document.createElement('div');t.className='msg2 ai';t.id='gTyping';
+  t.innerHTML=`<div class="ava ai">G</div><div><div class="bubble"><div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div></div>`;
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{document.getElementById('gTyping')?.remove();appendMsg(gReplies[gIdx++%gReplies.length],'ai')},1200+Math.random()*600);
+}
+function appendMsg(text,role){
+  const msgs=document.getElementById('geminiMsgs');
+  const d=document.createElement('div');d.className='msg2 '+role;
+  d.innerHTML=`<div class="ava ${role}">${role==='ai'?'G':'U'}</div><div><div class="bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${role==='ai'?'Gemini 2.0':'You'} · now</div></div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function handleGKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendGemini()}}
+function clearChat(){document.getElementById('geminiMsgs').innerHTML='';showToast('🗑️ Chat cleared')}
+
+// ── VOICE
+let isRec=false,recInstance=null;
+function toggleMainVoice(){isRec?stopRec():startRec()}
+function toggleVoiceRecord(){
+  if(!isRec){startRec();document.getElementById('voiceToolBtn').classList.add('recording');document.getElementById('voiceToolBtn').textContent='⏹ Stop'}
+  else{stopRec();document.getElementById('voiceToolBtn').classList.remove('recording');document.getElementById('voiceToolBtn').textContent='🎙️ Voice'}
+}
+function startRec(){
+  isRec=true;
+  document.getElementById('voiceMainBtn').classList.add('active');
+  document.getElementById('voiceStatus').textContent='🔴 Recording...';
+  document.getElementById('voiceSub').textContent='Speak now — Gemini is listening';
+  document.getElementById('waveform').classList.add('active');
+  document.querySelectorAll('.voice-ring-outer').forEach(r=>r.classList.add('recording'));
+  animateWave(true);
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){
+    recInstance=new SR();recInstance.continuous=true;recInstance.interimResults=true;recInstance.lang='en-US';
+    const box=document.getElementById('transcriptBox');box.classList.add('has-text');
+    recInstance.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;box.textContent=t;document.getElementById('geminiInput').value=t};
+    recInstance.onerror=()=>stopRec();recInstance.start();
+  } else {
+    const demos=['What is this building?','Translate this to Hindi','Set reminder 5PM','What is the weather?'];
+    const box=document.getElementById('transcriptBox');box.classList.add('has-text');
+    let ci=0,txt=demos[Math.floor(Math.random()*demos.length)];
+    const iv=setInterval(()=>{box.textContent=txt.slice(0,++ci);document.getElementById('geminiInput').value=box.textContent;if(ci>=txt.length)clearInterval(iv)},60);
+  }
+  showToast('🎙️ Listening...');
+}
+function stopRec(){
+  isRec=false;
+  document.getElementById('voiceMainBtn').classList.remove('active');
+  document.getElementById('voiceStatus').textContent='Tap to speak';
+  document.getElementById('voiceSub').textContent='Voice commands powered by Gemini AI';
+  document.getElementById('waveform').classList.remove('active');
+  document.querySelectorAll('.voice-ring-outer').forEach(r=>r.classList.remove('recording'));
+  animateWave(false);recInstance?.stop();recInstance=null;
+  showToast('⏹ Recording stopped');
+}
+function animateWave(on){
+  document.querySelectorAll('.wave-bar').forEach(b=>{
+    if(on){b._iv=setInterval(()=>{b.style.height=(4+Math.random()*28)+'px'},120)}
+    else{clearInterval(b._iv);b.style.height='4px'}
+  });
+}
+function sendVoiceToGemini(){
+  const txt=document.getElementById('transcriptBox').textContent;
+  if(!txt||txt==='Transcript will appear here when you speak...'){showToast('🎙️ Record something first');return}
+  switchTab('gemini');document.getElementById('geminiInput').value=txt;sendGemini();
+  document.getElementById('transcriptBox').textContent='Transcript will appear here when you speak...';
+  document.getElementById('transcriptBox').classList.remove('has-text');
+}
+function clearTranscript(){document.getElementById('transcriptBox').textContent='Transcript will appear here when you speak...';document.getElementById('transcriptBox').classList.remove('has-text');document.getElementById('geminiInput').value=''}
+
+// ── BLUETOOTH
+let isScan=false;
+function startBTScan(){
+  if(isScan)return;isScan=true;
+  document.getElementById('scanBtn').innerHTML='<span class="spin">⟳</span><span>Scanning BLE devices...</span>';
+  if(navigator.bluetooth){
+    navigator.bluetooth.requestDevice({acceptAllDevices:true}).then(d=>{showToast('📡 Found: '+d.name);doneScan()}).catch(()=>doneScan());
+  } else {setTimeout(doneScan,3000)}
+  setTimeout(doneScan,5000);
+}
+function doneScan(){isScan=false;const b=document.getElementById('scanBtn');if(b)b.innerHTML='<span>📡</span><span>Scan for Bluetooth Devices</span>';showToast('📡 Scan done — 3 devices found')}
+
+// ── TOAST
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);
+}
+    </script>
+</body>
+</html>
